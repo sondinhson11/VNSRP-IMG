@@ -2,42 +2,31 @@
 
 Bật start.bat lên sẽ chạy file này, hiện 1 cửa sổ UI chính với 3 tab:
   - Xử lý ảnh (ImageToolFrame từ image_tool.py)
-  - Tải ảnh xe (DownloadFrame từ download_cfx_vehicles.py)
-  - Tải ảnh vũ khí (DownloadFrame từ download_cfx_weapons.py)
+  - Tải ảnh xe (DownloadFrame từ download_cfx.py, --type=vehicle)
+  - Tải ảnh vũ khí (DownloadFrame từ download_cfx.py, --type=weapon)
 
 Mỗi tab có log riêng để tiện theo dõi.
 """
 
-import os
 import sys
-import queue
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
 
-# Import các tool đã refactor (class là Frame, không phải Tk)
 try:
     import image_tool
     ImageToolFrame = image_tool.ImageToolFrame
-    image_tool_main = image_tool.main  # dùng để setup_folders
+    image_tool.setup_folders()
 except Exception as e:
     print(f"Lỗi import image_tool: {e}")
     raise
 
 try:
-    import download_cfx_vehicles as cfx_veh
-    DownloadFrameVeh = cfx_veh.DownloadFrame
-    cfx_veh_main = cfx_veh.main if hasattr(cfx_veh, "main") else None
+    import download_cfx
+    DownloadFrame = download_cfx.DownloadFrame
+    CONFIG = download_cfx.CONFIG
 except Exception as e:
-    print(f"Lỗi import download_cfx_vehicles: {e}")
-    raise
-
-try:
-    import download_cfx_weapons as cfx_wpn
-    DownloadFrameWpn = cfx_wpn.DownloadFrame
-    cfx_wpn_main = cfx_wpn.main if hasattr(cfx_wpn, "main") else None
-except Exception as e:
-    print(f"Lỗi import download_cfx_weapons: {e}")
+    print(f"Lỗi import download_cfx: {e}")
     raise
 
 APP_DIR = Path(__file__).resolve().parent
@@ -50,12 +39,6 @@ class Launcher(tk.Tk):
         self.geometry("880x680")
         self.minsize(800, 620)
         self.configure(bg="#1e1e2e")
-
-        # Đảm bảo thư mục input/output tồn tại (gọi từ image_tool)
-        try:
-            image_tool.setup_folders()
-        except Exception:
-            pass
 
         self._build_styles()
         self._build_header()
@@ -88,43 +71,30 @@ class Launcher(tk.Tk):
         header = ttk.Frame(self, style="Header.TFrame")
         header.pack(fill="x", padx=20, pady=(18, 6))
         ttk.Label(header, text="VNSRP TOOLBOX", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(header, text="Xử lý ảnh & tải ảnh CFX — chọn tab bên dưới để dùng.",
+        ttk.Label(header,
+                  text="Xử lý ảnh & tải ảnh CFX — chọn tab bên dưới để dùng.",
                   style="Sub.TLabel").pack(anchor="w")
 
     def _build_tabs(self):
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True, padx=20, pady=(6, 6))
 
-        # ----- Tab 1: Xử lý ảnh -----
+        # Tab 1: Xử lý ảnh
         tab_img = ttk.Frame(notebook, style="Launcher.TFrame")
-        notebook.add(tab_img, text="  🖼  Xử lý ảnh  ")
+        notebook.add(tab_img, text="  Xử lý ảnh  ")
         ImageToolFrame(tab_img, root=self).pack(fill="both", expand=True, padx=4, pady=4)
 
-        # ----- Tab 2: Tải xe -----
+        # Tab 2: Tải xe
         tab_veh = ttk.Frame(notebook, style="Launcher.TFrame")
-        notebook.add(tab_veh, text="  🚗  Tải ảnh XE  ")
-        DownloadFrameVeh(
-            tab_veh,
-            default_dir=cfx_veh.DEFAULT_SAVE_DIR,
-            page_url=cfx_veh.PAGE_URL,
-            base_url=cfx_veh.BASE_URL,
-            item_label=cfx_veh.ITEM_LABEL,
-            page_title=cfx_veh.PAGE_TITLE,
-            root=self,
-        ).pack(fill="both", expand=True, padx=4, pady=4)
+        notebook.add(tab_veh, text="  Tải ảnh XE  ")
+        DownloadFrame(tab_veh, CONFIG["vehicle"], root=self).pack(
+            fill="both", expand=True, padx=4, pady=4)
 
-        # ----- Tab 3: Tải vũ khí -----
+        # Tab 3: Tải vũ khí
         tab_wpn = ttk.Frame(notebook, style="Launcher.TFrame")
-        notebook.add(tab_wpn, text="  🔫  Tải ảnh VŨ KHÍ  ")
-        DownloadFrameWpn(
-            tab_wpn,
-            default_dir=cfx_wpn.DEFAULT_SAVE_DIR,
-            page_url=cfx_wpn.PAGE_URL,
-            base_url=cfx_wpn.BASE_URL,
-            item_label=cfx_wpn.ITEM_LABEL,
-            page_title=cfx_wpn.PAGE_TITLE,
-            root=self,
-        ).pack(fill="both", expand=True, padx=4, pady=4)
+        notebook.add(tab_wpn, text="  Tải ảnh VŨ KHÍ  ")
+        DownloadFrame(tab_wpn, CONFIG["weapon"], root=self).pack(
+            fill="both", expand=True, padx=4, pady=4)
 
     def _build_footer(self):
         footer = ttk.Frame(self, style="Header.TFrame")
