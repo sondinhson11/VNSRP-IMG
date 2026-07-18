@@ -1,19 +1,19 @@
 @echo off
-title Tool Xu Ly Anh 2 Trong 1
+title VNSRP Toolbox - Khoi dong UI
 color 0C
 
-echo ===================================================
-echo       DANG KIEM TRA VA CAI DAT THU VIEN (Neu chua co)
-echo ===================================================
-pip install rembg onnxruntime Pillow
-
+:MENU
 cls
 echo ===================================================
-echo              KHOI DONG TOOL XU LY ANH
+echo        VNSRP TOOLBOX - DANG CAI DAT THU VIEN
 echo ===================================================
-python image_tool.py
+echo Dang kiem tra / cai dat cac thu vien can thiet...
+pip install rembg onnxruntime Pillow requests beautifulsoup4 >nul 2>&1
 
-echo.
+:LAUNCH
+cls
 echo ===================================================
-echo Da chay xong, nhan phim bat ky de thoat...
-pause >nul
+echo   DANG MO CUA SO UI CHINH...
+echo ===================================================
+start "VNSRP Toolbox" pythonw launcher.py
+goto :EOF
